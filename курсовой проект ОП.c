@@ -138,7 +138,7 @@ int main() {
             /*------------если считалась тройка------------*/
 
             int num1, num2; //объявление переменных 
-            writefileotvet(M, ROW, "constfix.txt"); // вызов функции, которая запишет массив М в файл
+            writefilefix(M, ROW, "constfix.txt"); // вызов функции, которая запишет массив М в файл
 
             FILE* constFilefix; // объявление файла constFilefix
 
