@@ -1,194 +1,197 @@
+#define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h> //заголовочные файлы
 #include <locale.h>
+#include <stdbool.h>
 #define ROW 10 //определение чисел
 #define COL 10
 
-char x[2]; //необходимая переменная,для занесения в ячейки значений
+int writefilefix(const char* constFilefixName);//прототип функции для вывода игрового поля на экран из файла constfix.txt
 
-/*------------массив символов, заполненный константными значениями-----------*/
-char M[10][10] = {
-  {' ','1','2','3','4','5','6','7','8','9'},
-  {'1',' ',' ','1',' ','O',' ','O','O','5'},
-  {'2','O',' ','2',' ',' ',' ',' ','1','3'},
-  {'3',' ',' ',' ','4',' ','3','O','O',' '},
-  {'4','O',' ',' ','X',' ',' ',' ',' ',' '},
-  {'5',' ',' ',' ','3',' ',' ',' ',' ','O'},
-  {'6','O','4',' ',' ',' ','O','O',' ',' '},
-  {'7','O',' ','X','X',' ','O','3','X','1'},
-  {'8',' ',' ',' ',' ','3','O','O','X',' '},
-  {'9','O',' ',' ','O','O','O',' ','2',' '}
-};
+const char* backupName = "constfix_backup.txt";
+const char* constFilefixName = "constfix.txt";
 
-/*------------функция для вывода массива M-----------------------*/
+int restoreBackup();//прототип функции возращения игрового поля в исходное состояние
 
-void printM() {
-    for (int i = 0; i < ROW; i++) {
-        for (int j = 0; j < COL; j++) {
-            printf("|_%c_|", M[i][j]);
-        }
-        printf("\n");
-    }
-}
+int modcell(const char* constFilefixName);//прототип функции для записи значений в ячейки
 
-/*------массив символов, заполненный верными значениями для решения головоломки--------*/
+int provfile(FILE* constFilefix, FILE* otvetFile);//прототип функции проверки путём сравнения файлов
 
-char O[10][10] = {
-  {' ','1','2','3','4','5','6','7','8','9'},
-  {'1',' ',' ','1',' ','2',' ','4','3','5'},
-  {'2','4',' ','2','5',' ',' ',' ','1','3'},
-  {'3',' ','1',' ','4',' ','3','2','5',' '},
-  {'4','1','3',' ','X','5',' ',' ','4','2'},
-  {'5',' ','2','5','3','1',' ',' ',' ','4'},
-  {'6','5','4','3',' ',' ','2','1',' ',' '},
-  {'7','2','5','X','X',' ','4','3','X','1'},
-  {'8',' ',' ','4','2','3','1','5','X',' '},
-  {'9','3',' ',' ','1','4','5',' ','2',' '}
-};
-
-/*------------функция для вывода массива О-----------------------*/
-
-void printO() {
-    for (int i = 0; i < ROW; i++) {
-        for (int j = 0; j < COL; j++) {
-            printf("|_%c_|", O[i][j]);
-        }
-        printf("\n");
-    }
-}
-/*------------функция для записи массива M в файл constfix.txt-----------------------*/
-
-
-void writefilefix(char M[][COL], int rows, const char* constFilefixName) {
-    FILE* constFilefix;
-    constFilefix = fopen(constFilefixName, "w");
-    if (constFilefix == NULL) {
-        perror("Ошибка при открытии файлов!");
-        return -1;
-    }
-    for (int i = 0; i < ROW; i++) {
-        for (int j = 0; j < COL; j++) {
-            fprintf(constFilefix, "%c", M[i][j]);
-        }
-        fprintf(constFilefix, "\n");
-    }
-    fclose(constFilefix);
-}
-
-/*------------функция для записи массива O в файл otvet.txt-----------------------*/
-
-void writefileotvet(char O[][COL], int rows, const char* otvetFileName) {
-    FILE* otvetFile;
-    otvetFile = fopen(otvetFileName, "w");
-    if (otvetFile == NULL) {
-        perror("Ошибка при открытии файлов!");
-        return -1;
-    }
-
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < COL; j++) {
-            fprintf(otvetFile, "%c", O[i][j]);
-        }
-        fprintf(otvetFile, "\n");
-    }
-    fclose(otvetFile);
-}
-
+int save(); //прототип диалога с пользователем по поводу сохранения
 
 /*--------------главная функция, ----------------------------------------
----выполняет вывод правил,меню и диалог с пользователем---*/
+---выполняет вышеперечисленные функции,вывод правил,меню и диалог с пользователем---*/
 
 int main() {
     setlocale(LC_ALL, "RUS"); //функция для перевода на русский язык текста на консоли
-    writefileotvet(O, ROW, "otvet.txt"); //вызов функции для записи массива O в файл otvet.txt
     printf("Игра-головоломка Числобол\n");
-    printM(); //использование функции для вывода массива М на экран
+    const char* constFilefixName = "constfix.txt";
+    writefilefix(constFilefixName); //использование функции для вывода массива М на экран
     puts("\nДля решения головоломки нужно расставить числа из указанного\nдиапазона в определённых клетках сетки так,\nчтобы в каждой строке и в каждом столбце каждое число\nиспользовалось только один раз.Если в клетке числобола находится кружок,\nто она обязательно должна содержать число.Если в клетке стоит\nкрестик, то в ней числа быть не должно.");
-    int num, mun; //переменные для функции switch case
+    int num; //переменные для функции switch case
     int k = 0; //переменная для использования в цикле
     while (k < 2) {
         printf("\nКакое действие желаете выполнить?:\n1)занести значение\n2)показать текущее поле\n3)проверить\n4)показать ответ\n5)выйти из игры\n");
         scanf("%d", &num); //считывание значения
         switch (num) {
         case 1:
-
-            /*------------если считалась единица------------*/
-
-            printf("Какую клетку вы хотите заменить?\nЗапишите двузначное число,где первая цифра будет означать строку,а вторая столбец:");
-            scanf("%d", &mun); //считывание ячейки
-            int i = mun / 10; // вычисление строки
-            int j = mun % 10; //вычисление столбца
-
-            /*------------проверка условия,------------
-            ------важно,чтобы в ячейку с символом Х не заносилось значение---------*/
-
-            if (M[i][j] != 'X') {
-                printf("Введите значение:");
-                scanf("%s", &x);
-                M[i][j] = x[0];
-                printf("Изменения приняты!\n");
-                }
-            else {
-                printf("По правилам игры в эту клетку нельзя занести значение!\n");
-            }
+            modcell(constFilefixName);
             break;
+
         case 2:
-            /*------------если считалась двойка------------*/
-
-            printM(); //вывод массива М на экран
+            writefilefix(constFilefixName); //вывод текущего игрового поля на экран
             break;
+
         case 3:
-            /*------------если считалась тройка------------*/
-
-            int num1, num2; //объявление переменных 
-            writefilefix(M, ROW, "constfix.txt"); // вызов функции, которая запишет массив М в файл
-
-            FILE* constFilefix; // объявление файла constFilefix
-
-            FILE* otvetFile; // объявление файла otvetFile
-
             /*------------открытие файла constFilefix на режим чтения------------*/
 
-            constFilefix = fopen("constfix.txt", "r");
-            otvetFile = fopen("otvet.txt", "r");
+            FILE* constFilefix = fopen("constfix.txt", "r");
+            FILE* otvetFile = fopen("otvet.txt", "r");
             if (constFilefix == NULL || otvetFile == NULL) {
                 printf("Ошибка при открытии файлов!\n");
-                return 1;
+                return -1;
             }
-
-            int mistake = 0; //переменная для отслеживания несоответствия символов
-
-            /*------------цикл while для осуществения проверки------------*/
-
-            while (fscanf(constFilefix, " %c", &num1) == 1 && fscanf(otvetFile, " %c", &num2) == 1) {
-                if (num1 != num2) {
-                    mistake = 1;
-                    break;
-                }
-            }
-            /*------------проверка условия несоответствия символов------------*/
-            if (mistake == 1) {
-                printf("Головоломка решена неверно! Попробуйте в следующий раз.\n");
-            }
-            else {
-                printf("Головоломка решена верно! Поздравляем!\n");
-            }
-
-            fclose(constFilefix); //закрытие файла constFilefix
-            fclose(otvetFile); //закрытие файла otvetFile
+            provfile(constFilefix, otvetFile); 
             return 0;
+
         case 4:
+            /*------------вывод массива O на экран------------*/
             printf("Ответ к головоломке Числобол:\n");
-            printO();
-            printf("Очень жаль что вы не справились сами...");
-            
+            const char* otvetFileName = "otvet.txt";
+            writefilefix(otvetFileName);
+            printf("Очень жаль что вы не справились сами...\n\n");
         case 5:
+            save();
             return 0; // выход из игры
 
-            /*--------сообщение выводится если ввели цифру,--------
-            ------которая не входит в диапазон от 1 до 4---------*/
+        default:
+              /*--------сообщение выводится если ввели цифру,--------
+            ------которая не входит в диапазон от 1 до 5---------*/
+            puts("Введено неверное значение");
 
-        default:puts("Введено неверное значение");
         } //switch num
     } // while (k < 2)
-    
 } // int main()
+
+/*------------функция для вывода игрового поля на экран из файла constfix.txt-------------*/
+
+int writefilefix(const char* constFilefixName) {
+    FILE* constFilefix = fopen(constFilefixName, "r");
+    if (constFilefix == NULL) {
+        perror("Ошибка при открытии файлов!");
+        return -1;
+    }
+    char c;
+    while ((c = fgetc(constFilefix)) != EOF) {
+        if (c != '\n') {
+            printf("|_%c_|", c);
+        }
+        else {
+            putchar(c);
+        }
+    }
+    fclose(constFilefix);
+    return 1;
+}
+
+/*------------функция возращения игрового поля в исходное состояние--------------------*/
+
+int restoreBackup() {
+    char ch;
+    FILE* backupFile = fopen(backupName, "rb");
+    FILE* constFilefix = fopen(constFilefixName, "wb");
+
+    if (backupFile == NULL || constFilefix == NULL) {
+        perror("Ошибка при открытии файлов!");
+        return -1;
+    }
+
+    while ((ch = fgetc(backupFile)) != EOF) {
+        fputc(ch, constFilefix);
+    }
+
+    fclose(constFilefix);
+    fclose(backupFile);
+    return 1;
+}
+
+/*------------функция для записи значений в ячейки-----------------------*/
+
+int modcell(const char* constFilefixName) {
+    FILE* constFilefix = fopen(constFilefixName, "r+");
+    if (constFilefix == NULL) {
+        perror("Ошибка при открытии файла!");
+        return -1;
+    }
+
+    int mun;
+    printf("Какую клетку вы хотите заменить?\nЗапишите двузначное число,где первая цифра будет означать строку,а вторая столбец:");
+    scanf("%d", &mun);
+
+    int i = mun / 10;
+    int j = mun % 10;
+
+    char M[10][10];
+    fseek(constFilefix, i, SEEK_SET);
+    fread(M, sizeof(char), sizeof(M), constFilefix);
+
+    if (M[i][j] != 'X') {
+        printf("Введите значение: ");
+        char temp[2];
+        scanf("%s", temp);
+        M[i][j] = temp[0];
+
+        fseek(constFilefix, i, SEEK_SET);
+        fwrite(M, sizeof(char), sizeof(M), constFilefix);
+
+        printf("Изменения приняты!\n");
+    }
+    else {
+        printf("По правилам игры в эту клетку нельзя занести значение!\n");
+    }
+
+    fclose(constFilefix);
+    return 1;
+}
+
+/*------------функция проверки путём сравнения файлов-----------------------*/
+
+int provfile(FILE* constFilefix, FILE* otvetFile) {
+    int num1, num2; //объявление переменных 
+    int mistake = 0; //переменная для отслеживания несоответствия символов
+    /*------------цикл while для осуществения проверки------------*/
+
+    while (fscanf(constFilefix, "%c", &num1) == 1 &&
+        fscanf(otvetFile, "%c", &num2) == 1) {
+        if (num1 != num2) {
+            mistake = 1;
+            break;
+        }
+    }
+    /*------------проверка условия несоответствия символов------------*/
+    if (mistake == 1) { 
+        printf("Головоломка решена неверно! Попробуйте в следующий раз.\n\n");
+    }
+    else {
+        printf("Головоломка решена верно! Поздравляем!\n\n");
+    }
+
+    fclose(constFilefix); //закрытие файла constFilefix
+    fclose(otvetFile); //закрытие файла otvetFile
+    save();
+    return 1;
+}
+
+/*------------диалог с пользователем по поводу сохранения-----------------------*/
+
+int save() {
+    int change;
+    printf("Вы желаете сохраниться?\n1)да\n2)нет\n");
+    scanf("%d", &change);
+    if (change == 1) {
+        return 0;
+    }
+    else if (change == 2) {
+        restoreBackup();
+    }
+    return 0;
+}
